@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="Bartololo">
+  <title>Invoicer</title>
+
+  <link href="./css/bootstrap.min.css" rel="stylesheet">
+  <link href="./css/invoice.css" rel="stylesheet">    
+</head>
+
+<body onload="renderInvoice()">
+
+  <div id="target">
+    Loding
+  </div>
+  <script id="template" type="x-tmpl-mustache">
+    <div class="container py-3">
+
+      <main>
+        <div class="row row-cols-2 mb-3 text-end">
+          <div class="col"></div>
+          <div class="col">
+            <div class="card-body">
+              <ul class="list-unstyled mt-3 mb-4">
+                <li>Data wystawienia: <b>{{date}}</b></li>
+                <li>Data wykonania usługi: <b>{{date}}</b></li>
+                <li>Miejsce wystawienia: <b>{{place}}</b></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="row row-cols-2 pb-5">
+          <div class="col">
+            <div class="card rounded-0">
+              <div class="card-header">
+                <h5 class="my-0 fw-normal">Sprzedawca</h5>
+              </div>
+              <div class="card-body">
+                <ul class="list-unstyled">             
+                  <li>{{seller.name}}</li>
+                  <li>Numer NIP: {{seller.nip}}</li>
+                  <li>{{seller.addressLine1}}</li>
+                  <li>{{seller.addressLine2}}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card rounded-0">
+              <div class="card-header">
+                <h5 class="my-0 fw-normal">Nabywca</h5>
+              </div>
+              <div class="card-body">
+                <ul class="list-unstyled">
+                  <li>{{buyer.name}}</li>
+                  <li>Numer NIP: {{buyer.nip}}</li>
+                  <li>{{buyer.addressLine1}}</li>
+                  <li>{{buyer.addressLine2}}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h1 class="text-center mt-5 mb-5">Faktura VAT {{invoiceNumber}}</h1>
+
+        <div class="row">
+          <div class="col">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col" style="width: 4%">lp.</th>
+                <th class="service-name" scope="col" style="width: 40%">Nazwa usługi</th>
+                <th scope="col" style="width: 7%">Ilość</th>
+                <th scope="col" style="width: 7%">J.m.</th>   
+                <th scope="col" style="width: 7%">Cena netto</th>              
+                <th scope="col" style="width: 9%">Wartość netto</th>
+                <th scope="col" style="width: 7%">Stawka VAT</th>
+                <th scope="col" style="width: 9%">Kwota VAT</th>
+                <th scope="col" style="width: 9%">Wartość brutto</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#soldServices}}
+                <tr>
+                  <th scope="row">1</th>
+                  <td class="service-name">{{name}}</td>
+                  <td>{{hours}}</td>
+                  <td>godz.</td>
+                  <td>{{rate}}</td>
+                  <td>{{#formatNumber}}{{netValue}}{{/formatNumber}}</td>
+                  <td>{{vat}}%</td>
+                  <td>{{#formatNumber}}{{vatValue}}{{/formatNumber}}</td>
+                  <td><b>{{#formatNumber}}{{grossValue}}{{/formatNumber}}</b></td>
+                </tr>
+              {{/soldServices}}
+            </tbody>
+          </table>
+        </div>
+        </div>
+        <div class="row row-cols-2 mt-3">
+          <div class="col"></div>
+          <div class="col">
+            <table class="table table table-borderless">
+              <thead>
+                <tr>
+                  <th scope="col"></th>
+                  <th scope="col">Wartość netto</th>
+                  <th scope="col">Stawka VAT</th>
+                  <th scope="col">Kwota VAT</th>              
+                  <th scope="col">Wartość brutto</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="highlight">
+                  <th scope="row">Razem</th>
+                  <td>{{#formatNumber}}{{netValueSum}}{{/formatNumber}}</td>
+                  <td>-</td>
+                  <td>{{#formatNumber}}{{vatValueSum}}{{/formatNumber}}</td>
+                  <td>{{#formatNumber}}{{grossValueSum}}{{/formatNumber}}</td>
+                </tr>
+                <tr>
+                  <td>w tym</th>
+                  <td>{{#formatNumber}}{{netValueSum}}{{/formatNumber}}</td>
+                  <td>23%</td>
+                  <td>{{#formatNumber}}{{vatValueSum}}{{/formatNumber}}</td>
+                  <td>{{#formatNumber}}{{grossValueSum}}{{/formatNumber}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="row mt-5">
+          <ul class="list-unstyled mt-2">             
+            <li>Waluta: PLN</li>
+            <li>Do zapłaty: {{#formatNumber}}{{grossValueSum}}{{/formatNumber}} zł</li>
+            <li>Sposób płatności: przelew</li>
+            <li>Nr rachunku: {{bankAccount}}</li>
+          </ul>
+        </div>
+      </main>
+    </div>
+  </script>
+  <script src="https://unpkg.com/mustache@latest"></script>
+  <script>
+
+      var viewData = {
+        "date": "30.04.2022",
+        "place": "Tokarczykowo",
+        "invoiceNumber": "01/04/2022",
+        "bankAccount": "11 0070 2111 1000 0097 1117 2022",
+        "soldServices": [
+          {
+            "name": "Service Name and description",
+            "hours": "152",
+            "rate": "1",
+            "vat": "23",
+            "netValue": "0",
+            "vatValue": "0",
+            "grossValue": "0",
+          }
+        ],
+        "netValueSum": 0,
+        "grossValueSum": 0,
+        "vatValueSum": 0,
+        "seller": {
+          "name": "Seller Name",
+          "nip": "1234565432",
+          "addressLine1": "Street 4/20",
+          "addressLine2": "00-000 Tokarczykowo"
+        },
+        "buyer": {
+          "name": "Buyer Name",
+          "nip": "1122332211",
+          "addressLine1": "Street 1",
+          "addressLine2": "02-001 City"
+        },
+        "formatNumber": function () {
+          return function (text, render) {
+            var x = parseFloat(render(text)).toFixed(2);
+            var parts = x.toString().split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "&nbsp;");
+            return parts.join(",");
+          }
+        }  
+      };
+
+      for(var service of viewData.soldServices) {
+        service.netValue = parseFloat(service.rate * service.hours);
+        service.vatValue = parseFloat(service.netValue * 0.23);
+        service.grossValue = parseFloat(service.netValue * 1.23);
+
+        viewData.netValueSum += service.netValue;
+        viewData.grossValueSum += service.grossValue;
+        viewData.vatValueSum += service.vatValue;
+      }
+
+      function renderInvoice() {
+          var template = document.getElementById('template').innerHTML;
+          var rendered = Mustache.render(template, viewData);
+        document.getElementById('target').innerHTML = rendered;
+      }
+  </script>
+</body>
+</html>

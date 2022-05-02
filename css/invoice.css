@@ -1,0 +1,24 @@
+body {
+  color: #000;
+}
+
+.highlight {
+  background-color: #ffe989;
+  font-weight: bold;
+}
+
+th, td {
+  text-align: right;
+}
+
+.service-name {
+  text-align: left;
+}
+
+h1 {
+	font-size: 35px;
+}
+
+.card-header {
+	background-color: silver;
+}
